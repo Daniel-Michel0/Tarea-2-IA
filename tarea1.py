@@ -170,11 +170,10 @@ env.verbose = True
 _ =env.reset()
 
 #########################
-####### Parametros ######
+####### Parte 1 a 3 #####
 #########################
 '''
 #* Original Q-learning
-
 EPISODES = 10000 
 MAX_STEPS = 100 
 
@@ -196,6 +195,10 @@ playgames(env, Q, 1, True)
 env.close()
 
 #* Original Sarsa
+env = gym.make("GridWorld-v0")
+env.verbose = True
+_ =env.reset()
+
 EPISODES = 10000 
 MAX_STEPS = 100 
 
@@ -215,7 +218,6 @@ rewards, Q = qlearning(env, epsilon)
 save_results(rewards, Q, "mapa1Sarsa.txt", "mapa1Sarsa.txt", "map1Sarsa1Plot.png")
 env.close()
 
-'''
 #* Mapa 2 Q-Learning
 
 EPISODES = 10000 
@@ -312,4 +314,133 @@ save_results(rewards, Q, "mapa2SARSA2.txt", "mapa2SARSA2values.txt", "sarsa2Plot
 playgames(env, Q, 1, True)
 env.close()
 
-#_ =env.step(env.action_space.sample())
+
+#* Mapa 2 double Q-Learning
+
+EPISODES = 10000 
+MAX_STEPS = 300 
+
+LEARNING_RATE = 0.3  
+GAMMA = 0.95
+epsilon = 1
+
+print('Observation space\n')
+print(env.observation_space)
+
+print('Action space\n')
+print(env.action_space)
+
+#Q = sarsa(env, epsilon)
+rewards, Q1, Q2 = double_qlearning(env, epsilon)
+save_results(rewards, Q1, "mapa2Qlearning.txt", "mapa2Qvalues.txt", "qlearningPlot.png")
+playgames(env, Q1+Q2, 1, True)
+env.close()
+
+#* Mapa 2 Q-Learning 2
+
+env = gym.make("GridWorld-v0")
+env.verbose = True
+_ =env.reset()
+
+EPISODES = 10000 
+MAX_STEPS = 300 
+
+LEARNING_RATE = 0.1
+GAMMA = 1
+epsilon = 1
+
+print('Observation space\n')
+print(env.observation_space)
+
+print('Action space\n')
+print(env.action_space)
+
+rewards, Q1, Q2 = double_qlearning(env, epsilon)
+save_results(rewards, Q1, "mapa2Qlearning2.txt", "mapa2Qvalues2.txt", "qlearning2Plot.png")
+playgames(env, Q1+Q2, 1, True)
+env.close()
+'''
+
+
+#* TD
+'''
+###########################
+#### Implementacion TD ####
+###########################
+
+EPISODES = 10000
+MAX_STEPS = 300
+
+# Clase agente, recibe el numero de estados, el numero de acciones, el alpha, el gamma, el epsilon y el lambd, y tiene las funciones para escoger una accion, actualizar la Q table y actualizar el lambd
+class Agent:
+    def __init__(self, num_states, num_actions, alpha, gamma, epsilon, lambd = 0.5):
+        self.num_states = num_states
+        self.num_actions = num_actions
+        self.alpha = alpha
+        self.gamma = gamma
+        self.epsilon = epsilon
+        self.lambd = lambd
+        self.Q = np.zeros((num_states, num_actions))
+        self.E = np.zeros((num_states, num_actions))
+
+    # Funcion para elegir una acción
+    def choose_action(self, state):
+        if np.random.uniform(0, 1) < self.epsilon:
+            action = np.random.choice(self.num_actions)
+        else:
+            action = np.argmax(self.Q[state, :])
+        return action
+        # Funcion para actualizar la tabla Q (Sarsa)
+    def update_Q_sarsa(self, state, action, reward, next_state, next_action, done):
+        delta = reward + self.gamma * self.Q[next_state, next_action] * (not done) - self.Q[state, action]
+        self.E[state, action] += 1
+        self.Q += self.alpha * delta * self.E
+        self.E *= self.gamma * self.lambd
+
+
+        #Funcion para actualizar la tabla Q (Q-learning)
+    def update_Q_qlearning(self, state, action, reward, next_state, done):
+        max_next_Q = np.max(self.Q[next_state, :])
+        delta = reward + self.gamma * max_next_Q * (not done) - self.Q[state, action]
+        self.E[state, action] += 1
+        self.Q += self.alpha * delta * self.E
+        self.E *= self.gamma * self.lambd
+
+# Funcion para correr episodios
+def run_episodes(agent, update_Q):
+    rewards_per_episode = []
+    for episode in range(EPISODES):
+        state = env.reset()
+        action = agent.choose_action(state)
+        total_reward = 0
+        for actual_step in range(MAX_STEPS):
+            next_state, reward, done, info = env.step(action)
+            next_action = agent.choose_action(next_state)
+            if update_Q == agent.update_Q_qlearning:
+                update_Q(state, action, reward, next_state, done)
+            else:
+                update_Q(state, action, reward, next_state, next_action, done)
+            state, action = next_state, next_action
+            total_reward += reward
+            if done:
+                break
+        rewards_per_episode.append(total_reward)
+    return rewards_per_episode, agent.Q
+num_states = env.observation_space.n
+num_actions = env.action_space.n
+agent = Agent(num_states, num_actions, alpha=0.1, gamma=0.95, epsilon=1.0)  
+
+# Crear 2 agentes
+agente_sarsa = Agent(num_states, num_actions, alpha=0.01, gamma=0.99, epsilon=1.0)
+agente_qlearning = Agent(num_states, num_actions, alpha=0.1, gamma=0.95, epsilon=1.0)
+
+# Episodios Sarsa
+rewards_per_episode_sarsa, q_sarsa = run_episodes(agente_sarsa, agente_sarsa.update_Q_sarsa)
+
+# Episodios Qlearning
+rewards_per_episode_qlearning, q_qlearning = run_episodes(agente_qlearning, agente_qlearning.update_Q_qlearning)
+
+# guardar datos
+save_results(rewards_per_episode_sarsa, q_sarsa, "TDsarsa1.txt", "QTDsarsa1.txt", "TDsarsa1.png")
+save_results(rewards_per_episode_qlearning, q_qlearning, "TDqlearning1.txt", "QTDlearning1.txt", "TDsarsa1.png")
+'''
