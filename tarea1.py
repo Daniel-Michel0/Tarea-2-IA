@@ -173,8 +173,8 @@ _ =env.reset()
 ####### Parametros ######
 #########################
 
-#* Original
-'''
+#* Original Q-learning
+
 EPISODES = 10000 
 MAX_STEPS = 100 
 
@@ -189,10 +189,32 @@ print(env.observation_space)
 print('Action space\n')
 print(env.action_space)
 
-Q = sarsa(env, epsilon)
-#Q = qlearning(env, epsilon)
-playgames(env, Q, 100, True)
+#Q = sarsa(env, epsilon)
+rewards, Q = qlearning(env, epsilon)
+save_results(rewards, Q, "mapa1Qlearning.txt", "mapa1Qvalues.txt", "map1QlearningPlot.png")
+playgames(env, Q, 1, True)
 env.close()
+
+#* Original Sarsa
+EPISODES = 10000 
+MAX_STEPS = 100 
+
+LEARNING_RATE = 0.2  
+GAMMA = 0.90 
+epsilon = 1
+
+print('Observation space\n')
+print(env.observation_space)
+
+
+print('Action space\n')
+print(env.action_space)
+
+#Q = sarsa(env, epsilon)
+rewards, Q = qlearning(env, epsilon)
+save_results(rewards, Q, "mapa1Sarsa.txt", "mapa1Sarsa.txt", "map1Sarsa1Plot.png")
+env.close()
+
 '''
 #* Mapa 2 Q-Learning
 
@@ -289,5 +311,5 @@ rewards, Q = sarsa(env, epsilon)
 save_results(rewards, Q, "mapa2SARSA2.txt", "mapa2SARSA2values.txt", "sarsa2Plot.png")
 playgames(env, Q, 1, True)
 env.close()
-
+'''
 #_ =env.step(env.action_space.sample())
