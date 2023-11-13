@@ -14,7 +14,7 @@ LEFT = 3
 class GridWorld(gym.Env):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, file_name = "map1.txt", fail_rate = 0.0, terminal_reward = 2.0, move_reward = 0.0, bump_reward = -0.5, bomb_reward = -1.5):
+    def __init__(self, file_name = "map2.txt", fail_rate = 0.0, terminal_reward = 2.0, move_reward = 0.0, bump_reward = -0.5, bomb_reward = -1.5):
         self.viewer = SimpleImageViewer()
         self.n = None
         self.m = None
@@ -95,6 +95,16 @@ class GridWorld(gym.Env):
             return      
 
     def take_action(self, action):
+        '''
+        #! Codigo para que el agente se mueva aleatoriamente
+        rand = np.random.rand()
+        if rand <= 0.7:
+            pass
+        elif rand <= 0.85:
+            action = (action + 1) % 4
+        else:
+            action = (action - 1) % 4
+        '''
         row = self.state // self.n
         col = self.state % self.n
         if action == DOWN and (row + 1) * self.n + col not in self.walls:

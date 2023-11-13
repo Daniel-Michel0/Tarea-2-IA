@@ -172,7 +172,7 @@ _ =env.reset()
 #########################
 ####### Parametros ######
 #########################
-
+'''
 #* Original Q-learning
 
 EPISODES = 10000 
@@ -311,5 +311,5 @@ rewards, Q = sarsa(env, epsilon)
 save_results(rewards, Q, "mapa2SARSA2.txt", "mapa2SARSA2values.txt", "sarsa2Plot.png")
 playgames(env, Q, 1, True)
 env.close()
-'''
+
 #_ =env.step(env.action_space.sample())
